@@ -1,0 +1,50 @@
+# -*- coding: iso-8859-15 -*-
+import socket
+from binascii import hexlify
+import platform
+# 输入参数为pcap数据、设置为过滤条件的IP地址，返回值为pcap时间集和udp包数据集
+def data_filter(pcap_data, *filter_ip):
+    # pc = pcap.pcap('ALP-sbs-2.pcap')
+    udp_packet_list = []
+    pcap_time_list = []
+    # 获取当前python版本号，选择合适的ip对比方法
+    python_major_num = int(platform.python_version().split('.')[0])
+    if(python_major_num == 2):
+        compare_ip = compare_ip2
+    else:
+        compare_ip = compare_ip3
+    for ptime, pdata in pcap_data:
+        if compare_ip(filter_ip[0], pdata[16:20]):  # 过滤IP地址
+            pcap_time_list.append(ptime)
+            udp_packet_list.append(pdata)
+    return [pcap_time_list, udp_packet_list]
+
+# 将人可读的ip地址转换为对应ascii码值的字符串
+def human_read_ip_to_asciistr(human_read_ip):
+    return ''.join('%s' %chr((int(x))) for x in human_read_ip.split('.'))
+# python3版本将bytes转化成str类型
+def bytes_to_str3(input_bytes):
+    return ''.join('%s' %chr(x) for x in input_bytes)
+# python2版本raw_ip为str，不需要转化
+def compare_ip2(human_read_ip, raw_ip):
+    return human_read_ip_to_asciistr(human_read_ip) == raw_ip
+# python3版本raw_ip为bytes
+def compare_ip3(human_read_ip, raw_ip):
+    return human_read_ip_to_asciistr(human_read_ip) == bytes_to_str3(raw_ip)
+
+import pcap
+from atsc_utils.decimal_conversion import ipToHex,toHex
+def filter_ip_and_port(ip , port, pc):
+    ip = ipToHex(ip)
+    port = str(toHex(int(port))).decode('string-escape')
+    is_repeat = set()
+    data_list = []
+    num = 1
+    for ptime, pdata in pc:
+        if ip == pdata[16:20] and pdata[36:40] == '\x00\x00\x00\x00' and port == pdata[22:24]:
+            if pdata[64:] in is_repeat:
+                pass
+            else:
+                is_repeat.add(pdata[64:])
+                data_list.append(pdata[0:])
+    return data_list

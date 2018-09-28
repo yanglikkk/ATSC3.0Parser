@@ -1,0 +1,15 @@
+import xml.dom.minidom
+
+def parserXml(fileName):
+    dom = xml.dom.minidom.parse(fileName)
+    root = dom.documentElement
+    ip_and_port = {}
+    j = 1
+    # print(root.nodeName)
+    h = root.getElementsByTagName('BroadcastSvcSignaling')
+    for i in h:
+        ip =i.getAttribute('slsDestinationIpAddress')
+        port = i.getAttribute('slsDestinationUdpPort')
+        ip_and_port[str(j)] = [str(ip),str(port)]
+        j += 1
+    return ip_and_port

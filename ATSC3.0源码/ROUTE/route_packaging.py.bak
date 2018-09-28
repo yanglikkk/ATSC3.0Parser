@@ -1,0 +1,18 @@
+def packaging(packaging_data):
+    return ''.join(packaging_data)
+
+def sort_dict(data_dict):
+    for i, v in data_dict.items():
+        v.sort(key=lambda x: x[60:64])
+    return data_dict
+
+def classify_data(data_list):
+    identify_set = set()
+    data_dict = {}
+    for pdata in data_list:
+        if pdata[40:44] in identify_set:
+            data_dict[pdata[40:44]].append(pdata)
+        else:
+            identify_set.add(pdata[40:44])
+            data_dict[pdata[40:44]] = [pdata]
+    return data_dict
